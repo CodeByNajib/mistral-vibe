@@ -30,10 +30,40 @@ from vibe.core.prompts import SystemPrompt
 from vibe.core.tools.base import BaseToolConfig
 
 
+def find_local_env_file() -> Path | None:
+    """Find a local .env file in the current working directory or its ancestors."""
+    current_dir = Path.cwd()
+
+    # Check current directory and all parent directories up to root
+    for parent in [current_dir, *current_dir.parents]:
+        env_file = parent / ".env"
+        if env_file.is_file():
+            return env_file
+        # Stop at root directory
+        if parent == parent.parent:
+            break
+    return None
+
+
 def load_dotenv_values(
-    env_path: Path = GLOBAL_ENV_FILE.path,
-    environ: MutableMapping[str, str] = os.environ,
+    env_path: Path | None = None, environ: MutableMapping[str, str] = os.environ
 ) -> None:
+    """Load environment variables from .env file.
+
+    Priority:
+    1. Explicit env_path if provided
+    2. Local .env file in current directory or ancestors
+    3. Global .env file in VIBE_HOME
+
+    This allows projects to have their own .env files while maintaining
+    backward compatibility with the global configuration.
+    """
+    # Determine which .env file to use
+    if env_path is None:
+        env_path = find_local_env_file()
+    if env_path is None:
+        env_path = GLOBAL_ENV_FILE.path
+
     # We allow FIFO path to support some environment management solutions (e.g. https://developer.1password.com/docs/environments/local-env-file/)
     if not env_path.is_file() and not env_path.is_fifo():
         return
