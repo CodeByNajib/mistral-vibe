@@ -9,6 +9,8 @@ import subprocess
 import pyperclip
 from textual.app import App
 
+from vibe.core.utils.emoji_counter import count_emojis
+
 
 def _copy_osc52(text: str) -> None:
     encoded = base64.b64encode(text.encode("utf-8")).decode("ascii")
@@ -100,6 +102,10 @@ def _read_clipboard() -> str | None:
 
 
 def _copy_to_clipboard(text: str) -> None:
+    emoji_count = count_emojis(text)
+    if emoji_count > 0:
+        print(f"🎉 Copied text with {emoji_count} emoji(s)!")
+
     all_strategies_failed = True
     for to_clipboard in _COPY_METHODS:
         try:
