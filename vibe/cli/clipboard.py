@@ -102,10 +102,6 @@ def _read_clipboard() -> str | None:
 
 
 def _copy_to_clipboard(text: str) -> None:
-    emoji_count = count_emojis(text)
-    if emoji_count > 0:
-        print(f"🎉 Copied text with {emoji_count} emoji(s)!")
-
     all_strategies_failed = True
     for to_clipboard in _COPY_METHODS:
         try:
@@ -151,6 +147,13 @@ def copy_selection_to_clipboard(app: App, show_toast: bool = True) -> str | None
     combined_text = "\n".join(selected_texts)
     try:
         _copy_to_clipboard(combined_text)
+        emoji_count = count_emojis(combined_text)
+        if emoji_count > 0:
+            app.notify(
+                f"🎉 Copied text with {emoji_count} emoji(s)!",
+                severity="information",
+                timeout=2,
+            )
         if show_toast:
             app.notify(
                 "Selection copied to clipboard",
